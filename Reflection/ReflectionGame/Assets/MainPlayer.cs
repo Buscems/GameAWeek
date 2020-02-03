@@ -17,6 +17,7 @@ public class MainPlayer : MonoBehaviour
 
     [Header("Movement")]
     public float speed;
+    [SerializeField]
     Vector2 velocity;
     Rigidbody2D rb;
 
@@ -32,7 +33,17 @@ public class MainPlayer : MonoBehaviour
     public float onPlatformTimerMax;
     public bool onTopOfPlatform;
 
-    [HideInInspector]
+    [Header("Easing Variables")]
+    public float rippleSpeed;
+    public float lengthOfRipple;
+    public float rippleFrequency;
+    public float amplitude;
+
+    float equationTime;
+    float origScale;
+    public GameObject playerSprite;
+
+    //[HideInInspector]
     public bool ready;
 
     private void Awake()
@@ -47,6 +58,7 @@ public class MainPlayer : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        origScale = playerSprite.transform.localScale.x;
     }
 
     // Update is called once per frame
@@ -54,6 +66,16 @@ public class MainPlayer : MonoBehaviour
     {
 
         Movement();
+
+        equationTime += Time.deltaTime * rippleSpeed;
+        float equationAdd = Mathf.Exp(-equationTime * lengthOfRipple) * Mathf.Cos(rippleFrequency * Mathf.PI * equationTime) * amplitude;
+
+        playerSprite.transform.localScale = new Vector2(origScale + (equationAdd / 1.8f), origScale - equationAdd);
+
+        if (playerSprite.transform.localScale.y < 0)
+        {
+            playerSprite.transform.localScale = new Vector2(origScale + (equationAdd / 1.8f), 0.5f);
+        }
 
     }
 
@@ -129,7 +151,8 @@ public class MainPlayer : MonoBehaviour
                 { //am I hitting the top of the platform?
 
                     onTopOfPlatform = true;
-                    if (contact.collider.gameObject.tag == "goal")
+                    equationTime = 0;
+                    if (contact.collider.gameObject.tag == "Goal")
                     {
                         ready = true;
                     }
@@ -147,12 +170,45 @@ public class MainPlayer : MonoBehaviour
         }
     }
 
+    private void OnCollisionStay2D(Collision2D collisionInfo)
+    {
+        foreach (ContactPoint2D contact in collisionInfo.contacts)
+        {
+            //am I coming from the top/bottom?
+            if (Mathf.Abs(contact.normal.y) > Mathf.Abs(contact.normal.x))
+            {
+                velocity.y = 0; //stop vertical velocity
+                if (contact.normal.y >= 0)
+                { //am I hitting the top of the platform?
+
+                    onTopOfPlatform = true;
+                }
+                //am I hitting the bottom of a platform?
+                if (contact.normal.y < 0)
+                {
+                    //hitHead = true;
+                    velocity.y = 0;
+                    //gotHitTimer = 0;
+                    //maxKnockbackTime = 0;
+
+                }
+            }
+        }
+        if (collisionInfo.gameObject.tag == "Goal")
+        {
+            ready = true;
+        }
+    }
+
     private void OnCollisionExit2D(Collision2D collisionInfo)
     {
-        onTopOfPlatform = false;
-        if (collisionInfo.gameObject.tag == "goal")
+        if (collisionInfo.gameObject.tag == "Goal")
         {
             ready = false;
+        }
+        else
+        {
+            onTopOfPlatform = false;
         }
     }
 

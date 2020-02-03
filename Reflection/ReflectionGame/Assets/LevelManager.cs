@@ -21,6 +21,7 @@ public class LevelManager : MonoBehaviour
     {
         if (player1.ready && player2.ready)
         {
+            
             switch (currentLevel)
             {
                 case 1:
@@ -30,6 +31,7 @@ public class LevelManager : MonoBehaviour
                     SceneManager.LoadScene("Level3");
                     break;
             }
+            
         }
     }
 }
