@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class LevelManager : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class LevelManager : MonoBehaviour
     public MainPlayer player1, player2;
 
     public int currentLevel;
+
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -24,6 +28,9 @@ public class LevelManager : MonoBehaviour
             
             switch (currentLevel)
             {
+                case 0:
+                    SceneManager.LoadScene("Level1");
+                    break;
                 case 1:
                     SceneManager.LoadScene("Level2");
                     break;
@@ -32,6 +39,26 @@ public class LevelManager : MonoBehaviour
                     break;
             }
             
+        }
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
+
+        if (Input.GetKeyDown(KeyCode.RightShift))
+        {
+
+            switch (currentLevel)
+            {
+                case 1:
+                    SceneManager.LoadScene("Level2");
+                    break;
+                case 2:
+                    SceneManager.LoadScene("Level3");
+                    break;
+            }
+
         }
     }
 }
