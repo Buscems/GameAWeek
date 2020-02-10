@@ -16,14 +16,26 @@ public class MainPlayer : MonoBehaviour
 
     public Vector2 joystickMinMax;
 
+    public float speed;
+
+    Vector3 velocity;
+
+    Rigidbody2D rb;
+
     [Header("Attack Sequence")]
     public float inputTime;
 
     public Vector2 inputDirection;
 
-    public float quarterCircleForward;
+    public float quarterCircleForward, quarterCircleBackward;
 
     string currentAttack = "";
+
+    public GameObject projectile;
+
+    Vector3 teleportDirection;
+    public float teleportDistance;
+    bool startTeleport;
 
     private void Awake()
     {
@@ -36,12 +48,14 @@ public class MainPlayer : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody2D>();        
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        velocity.x = myPlayer.GetAxisRaw("Horizontal");
 
         inputDirection = new Vector2(myPlayer.GetAxis("Horizontal"), myPlayer.GetAxis("Vertical"));
 
@@ -57,6 +71,13 @@ public class MainPlayer : MonoBehaviour
             Attack();
         }
 
+        if (startTeleport)
+        {
+            StartCoroutine(Teleport());
+        }
+
+        rb.MovePosition(transform.position + velocity * speed * Time.deltaTime);
+
     }
 
     void Attack()
@@ -66,10 +87,36 @@ public class MainPlayer : MonoBehaviour
             case "qcf":
 
                 //do quarter circle forward thing
+                var temp = Instantiate(projectile, transform.position, Quaternion.identity);
+                temp.transform.up = new Vector3(1, 0, 0);
+                quarterCircleForward = -1;
+                quarterCircleBackward = -1;
                 currentAttack = "";
 
             break;
+            case "qcb":
+                startTeleport = true;
+                currentAttack = "";
+                quarterCircleForward = -1;
+                quarterCircleBackward = -1;
+                break;
         }
+    }
+
+    IEnumerator Teleport()
+    {
+        startTeleport = false;
+        yield return new WaitForSeconds(.2f);
+        teleportDirection = inputDirection;
+        if(teleportDirection.x > 0)
+        {
+            teleportDirection = new Vector3(1, 0, 0);
+        }
+        if (teleportDirection.x < 0)
+        {
+            teleportDirection = new Vector3(-1, 0, 0);
+        }
+        transform.position += new Vector3(teleportDirection.x, 0, 0) * teleportDistance;
     }
 
     string InputDetector()
@@ -79,9 +126,19 @@ public class MainPlayer : MonoBehaviour
         if(inputDirection.y < -joystickMinMax.y && Mathf.Abs(inputDirection.x) < joystickMinMax.x)
         {
             quarterCircleForward = inputTime;
+            quarterCircleBackward = inputTime;
+        }
+        if (inputDirection.y < -.72f && inputDirection.x < -.8f)
+        {
+            quarterCircleForward = -1;
+            if (quarterCircleBackward > 0)
+            {
+                quarterCircleBackward = inputTime;
+            }
         }
         if (inputDirection.y < -.72f && inputDirection.x > .8f)
         {
+            quarterCircleBackward = -1;
             if (quarterCircleForward > 0)
             {
                 quarterCircleForward = inputTime;
@@ -94,6 +151,16 @@ public class MainPlayer : MonoBehaviour
             {
                 currentAttack = "qcf";
                 quarterCircleForward = -.1f;
+            }
+
+        }
+        if (Mathf.Abs(inputDirection.y) < joystickMinMax.x && inputDirection.x < -joystickMinMax.y)
+        {
+
+            if (quarterCircleBackward > 0)
+            {
+                currentAttack = "qcb";
+                quarterCircleBackward = -.1f;
             }
 
         }
