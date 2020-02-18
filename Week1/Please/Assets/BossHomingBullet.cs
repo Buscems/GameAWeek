@@ -20,6 +20,8 @@ public class BossHomingBullet : MonoBehaviour
 
     public GameObject explosionEffect;
 
+    public float homingInterval;
+
     // Start is called before the first frame update
     void Start()
     {
