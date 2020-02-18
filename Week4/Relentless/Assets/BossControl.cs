@@ -20,7 +20,6 @@ public class BossControl : MonoBehaviour
 
     bool attacking;
 
-
     [Header("Movement")]
     public float baseSpeed;
     public float superSpeed;
@@ -34,9 +33,11 @@ public class BossControl : MonoBehaviour
 
     [Header("Swipe Attack")]
     public GameObject sword;
+    public int swordCooldown;
 
     [Header("Stomp Attack")]
     public GameObject stomp;
+    public int stompCooldown;
 
     [Header("Homing Attack")]
     public GameObject homingMissile;
@@ -62,6 +63,8 @@ public class BossControl : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         TurnOffAttacks();
+
+        health = maxHealth;
 
         target = GameObject.FindGameObjectWithTag("Player").transform;
 
@@ -116,9 +119,6 @@ public class BossControl : MonoBehaviour
         {
             Stomp();
         }
-
-        
-
     }
 
     private void FixedUpdate()
@@ -137,7 +137,7 @@ public class BossControl : MonoBehaviour
 
         sword.SetActive(true);
 
-        anim.SetTrigger("LargeSwipe");   
+        anim.SetTrigger("LargeSwipe");
     }
 
     public void Stomp()
@@ -148,7 +148,6 @@ public class BossControl : MonoBehaviour
         stomp.SetActive(true);
 
         anim.SetTrigger("Stomp");
-
     }
 
     IEnumerator HomingMissile()
