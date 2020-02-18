@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 using TMPro;
+using UnityEngine.UI;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -28,6 +29,10 @@ public class EnemySpawner : MonoBehaviour
     bool newWave;
 
     public float waveInterval;
+
+    public Color[] numberColors;
+
+    public TextMeshProUGUI numbers;
 
     // Start is called before the first frame update
     void Start()
@@ -189,7 +194,17 @@ public class EnemySpawner : MonoBehaviour
             yield return null;
         }
         currentWave++;
-        yield return new WaitForSeconds(waveInterval);
+        for (int i = 5; i > 0; i--)
+        {
+            var temp = i;
+            temp -= 1;
+            numbers.enabled = false;
+            numbers.enabled = true;
+            numbers.color = numberColors[temp];
+            numbers.text = i.ToString();
+            yield return new WaitForSeconds(1);
+        }
+        numbers.enabled = false;
         newWave = false;
     }
 

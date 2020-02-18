@@ -4,11 +4,14 @@ using UnityEngine;
 using Rewired;
 using Rewired.ControllerExtensions;
 using UnityEngine.UI;
+using TMPro;
 
 public class MainPlayer : MonoBehaviour
 {
 
     Animator anim;
+
+    public TextMeshProUGUI endText;
 
     //the following is in order to use rewired
     [Tooltip("Reference for using rewired")]
@@ -33,6 +36,8 @@ public class MainPlayer : MonoBehaviour
     bool isShooting;
     public int currentDamage;
 
+
+
     private void Awake()
     {
         //Rewired Code
@@ -47,6 +52,8 @@ public class MainPlayer : MonoBehaviour
 
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
+
+        endText.enabled = false;
 
     }
 
@@ -115,6 +122,34 @@ public class MainPlayer : MonoBehaviour
         temp.GetComponent<PlayerBullet>().damage = currentDamage;
         yield return new WaitForSeconds(shotInterval);
         isShooting = false;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if(collision.gameObject.tag == "Enemy")
+        {
+            StartCoroutine(Death());
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if(collision.gameObject.tag == "Enemy")
+        {
+            StartCoroutine(Death());
+        }
+    }
+
+    IEnumerator Death()
+    {
+        endText.enabled = true;
+        var temp = EnemySpawnerNew.currentWave;
+        temp -= 1;
+        Time.timeScale = 0;
+        endText.text = "You survived " + temp + " wave(s)";
+        yield return new WaitForSecondsRealtime(5);
+        Time.timeScale = 1;
+        UnityEngine.SceneManagement.SceneManager.LoadScene("Relentless");
     }
 
     //[REWIRED METHODS]
