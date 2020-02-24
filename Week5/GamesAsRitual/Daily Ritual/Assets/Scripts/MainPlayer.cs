@@ -138,6 +138,16 @@ public class MainPlayer : MonoBehaviour
                 if (contact.normal.y >= 0)
                 { //am I hitting the top of the platform?
 
+                    if(collisionInfo.gameObject.tag == "Pillow")
+                    {
+                        velocity.y = jumpVel * 5;
+                        collisionInfo.gameObject.GetComponent<PillowProjectile>().direction = new Vector3(0, -1, 0);
+                    }
+                    if (collisionInfo.gameObject.tag == "Bed")
+                    {
+                        velocity.y = jumpVel * 5;
+                        collisionInfo.gameObject.GetComponent<BedBoss>().GetHit();
+                    }
                     onTopOfPlatform = true;
                 }
                 //am I hitting the bottom of a platform?

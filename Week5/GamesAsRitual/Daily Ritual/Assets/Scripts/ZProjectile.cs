@@ -23,4 +23,10 @@ public class ZProjectile : MonoBehaviour
     {
         
     }
+
+    private void FixedUpdate()
+    {
+        rb.MovePosition(transform.position + direction * speed * Time.deltaTime);
+    }
+
 }

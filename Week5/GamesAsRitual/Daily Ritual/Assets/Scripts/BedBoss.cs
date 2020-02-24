@@ -30,6 +30,9 @@ public class BedBoss : MonoBehaviour
 
     public Transform target;
 
+    bool isShooting;
+
+    bool canShootZ;
 
     // Start is called before the first frame update
     void Start()
@@ -59,6 +62,20 @@ public class BedBoss : MonoBehaviour
         }
 
         shootDirection = (target.position - this.transform.position).normalized;
+
+        if (!isShooting)
+        {
+            StartCoroutine(Shoot());
+        }
+
+        if(shootDirection.x > 0)
+        {
+            GetComponent<SpriteRenderer>().flipX = true;
+        }
+        if (shootDirection.x < 0)
+        {
+            GetComponent<SpriteRenderer>().flipX = false;
+        }
 
     }
 
@@ -105,14 +122,28 @@ public class BedBoss : MonoBehaviour
 
     IEnumerator Shoot()
     {
+        isShooting = true;
         yield return new WaitForSeconds(shootInterval);
 
         int temp = Random.Range(0, 2);
+
+        if (!canShootZ)
+        {
+            temp = 0;
+        }
+        
         //pillow attack
         if (temp == 0)
         {
             var newPillow = Instantiate(pillow, transform.position, Quaternion.identity);
-            newPillow.GetComponent<PillowProjectile>().direction.x = shootDirection.x;
+            if (shootDirection.x > 0)
+            {
+                newPillow.GetComponent<PillowProjectile>().direction.x = 1;
+            }
+            if (shootDirection.x <= 0)
+            {
+                newPillow.GetComponent<PillowProjectile>().direction.x = -1;
+            }
         }
         //z attack
         if(temp == 1)
@@ -120,7 +151,13 @@ public class BedBoss : MonoBehaviour
             var newZAttack = Instantiate(zAttack, transform.position, Quaternion.identity);
             newZAttack.GetComponent<ZProjectile>().direction = shootDirection;
         }
-        
+
+        isShooting = false;
+    }
+
+    public void GetHit()
+    {
+
     }
 
 }
