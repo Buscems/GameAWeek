@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Pillow
   - Floor
+  - Bed
   layers:
   - Default
   - TransparentFX

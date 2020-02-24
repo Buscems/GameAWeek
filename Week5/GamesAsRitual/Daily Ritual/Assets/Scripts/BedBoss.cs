@@ -34,11 +34,22 @@ public class BedBoss : MonoBehaviour
 
     bool canShootZ;
 
+    int health;
+
+    [Header("Screen Shake")]
+    public Camera playerCamera;
+    public Vector2 rangeOfShake;
+    public float shakeDuration;
+    bool screenShake;
+
     // Start is called before the first frame update
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         timeToMove = true;
+
+        health = 3;
+
     }
 
     // Update is called once per frame
@@ -77,11 +88,29 @@ public class BedBoss : MonoBehaviour
             GetComponent<SpriteRenderer>().flipX = false;
         }
 
+        if (screenShake)
+        {
+            ScreenShake();
+        }
+
     }
 
     private void FixedUpdate()
     {
         rb.MovePosition(transform.position + velocity  * speed * Time.deltaTime);
+    }
+
+    void ScreenShake()
+    {
+        playerCamera.transform.position = new Vector3(Random.Range(rangeOfShake.x, rangeOfShake.y), Random.Range(rangeOfShake.x, rangeOfShake.y), -10);
+    }
+
+    IEnumerator StartScreenShake()
+    {
+        screenShake = true;
+        yield return new WaitForSeconds(shakeDuration);
+        screenShake = false;
+        playerCamera.transform.position = new Vector3(0, 0, -10);
     }
 
     IEnumerator MoveRight()
@@ -108,8 +137,8 @@ public class BedBoss : MonoBehaviour
 
     IEnumerator WaitToMove()
     {
-        timeToMove = false;
         yield return new WaitForSeconds(timeUntilMove);
+        timeToMove = false;
         if(transform.position.x < 0)
         {
             StartCoroutine(MoveRight());
@@ -157,7 +186,9 @@ public class BedBoss : MonoBehaviour
 
     public void GetHit()
     {
-
+        health -= 1;
+        StartCoroutine(StartScreenShake());
+        timeToMove = true;
     }
 
 }
