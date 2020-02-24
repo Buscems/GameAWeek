@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
@@ -15,4 +16,20 @@ public class MenuController : MonoBehaviour
     {
         
     }
+
+    public void GoToMainMenu()
+    {
+        SceneManager.LoadScene("Title Scene");
+    }
+
+    public void GoToGame()
+    {
+        SceneManager.LoadScene("BedFight");
+    }
+
+    public void NeverGotOutOfBed()
+    {
+        SceneManager.LoadScene("Never Got Out Of Bed");
+    }
+
 }

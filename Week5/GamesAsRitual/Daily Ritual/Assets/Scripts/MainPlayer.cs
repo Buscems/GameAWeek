@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Rewired;
 using Rewired.ControllerExtensions;
+using UnityEngine.UI;
 
 public class MainPlayer : MonoBehaviour
 {
@@ -36,6 +37,10 @@ public class MainPlayer : MonoBehaviour
     //[HideInInspector]
     public bool ready;
 
+    public int health;
+
+    public Image[] healthImage;
+
     private void Awake()
     {
         //Rewired Code
@@ -48,11 +53,36 @@ public class MainPlayer : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+
+        health = 3;
+
     }
 
     // Update is called once per frame
     void Update()
     {
+
+        if(health == 3)
+        {
+            for(int i = 0; i < health; i++)
+            {
+                //healthImage[i].enabled = true;
+            }
+        }
+        if(health == 2)
+        {
+            healthImage[2].enabled = false;
+        }
+        if (health == 1)
+        {
+            healthImage[1].enabled = false;
+
+        }
+        if(health <= 0)
+        {
+            healthImage[0].enabled = false;
+            UnityEngine.SceneManagement.SceneManager.LoadScene("LoseScene");
+        }
 
         Movement();
 
@@ -158,6 +188,19 @@ public class MainPlayer : MonoBehaviour
                     //gotHitTimer = 0;
                     //maxKnockbackTime = 0;
 
+                }
+            }
+            else
+            {
+                bool hasTakenDamage = false;
+                if (!hasTakenDamage)
+                {
+                    health--;
+                    hasTakenDamage = true;
+                }
+                if(collisionInfo.gameObject.tag == "Pillow")
+                {
+                    Destroy(collisionInfo.gameObject);
                 }
             }
         }

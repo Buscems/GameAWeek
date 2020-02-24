@@ -6,6 +6,18 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
+    path: Assets/Scenes/Title Scene.unity
+    guid: 76ac36a1f93ebb94482956699a9a06e0
+  - enabled: 1
     path: Assets/Scenes/BedFight.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/LoseScene.unity
+    guid: 12f8b338d860b76479e1b41101753c27
+  - enabled: 1
+    path: Assets/Scenes/Never Got Out Of Bed.unity
+    guid: 5f4281607d9412b44ad367d126c52acf
+  - enabled: 1
+    path: Assets/Scenes/Win Scene.unity
+    guid: 80042a66ae823a04f9ad3452f8df530c
   m_configObjects: {}

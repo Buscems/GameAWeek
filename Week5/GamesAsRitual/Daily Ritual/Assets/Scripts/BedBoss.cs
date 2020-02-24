@@ -48,7 +48,7 @@ public class BedBoss : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         timeToMove = true;
 
-        health = 3;
+        health = 5;
 
     }
 
@@ -91,6 +91,16 @@ public class BedBoss : MonoBehaviour
         if (screenShake)
         {
             ScreenShake();
+        }
+
+        if(health <= 2)
+        {
+            canShootZ = true;
+        }
+
+        if(health <= 0)
+        {
+            UnityEngine.SceneManagement.SceneManager.LoadScene("Win Scene");
         }
 
     }
