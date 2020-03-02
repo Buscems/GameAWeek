@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Rewired;
 using Rewired.ControllerExtensions;
+using UnityEngine.UI;
 
 public class MainPlayer : MonoBehaviour
 {
@@ -16,6 +17,9 @@ public class MainPlayer : MonoBehaviour
     public int playerNum;
 
     Rigidbody2D rb;
+
+    public GameObject pointer;
+    public float pointerDistance;
 
     [Header("Movement")]
     public float speed;
@@ -32,6 +36,8 @@ public class MainPlayer : MonoBehaviour
 
     bool canAttack;
 
+    bool attacking;
+
     [Header("Attack Spots")]
     public string basicAttack;
     public string mediumAttack;
@@ -46,6 +52,21 @@ public class MainPlayer : MonoBehaviour
     bool firstAttack, secondAttack, finisherAttack;
     bool doSecondAttack, doFinisherAttack;
     public float timeToInputCombo;
+    public float baseMeleeDamage;
+    float meleeModifier;
+    float currentMeleeDamage;
+
+    [Header("Throw Ability")]
+    public GameObject chargeBar;
+    public Image filledBar;
+    public GameObject throwAttack;
+    public float baseThrowDamage;
+    float throwModifier;
+    float currentThrowDamage;
+    bool chargeAttack;
+    float throwTimer;
+
+    public static bool canUseChargeAttack = true;
 
     private void Awake()
     {
@@ -60,6 +81,16 @@ public class MainPlayer : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         canAttack = true;
+        meleeModifier = 1;
+
+        for(int i = 0; i < meleeAttacks.Length; i++)
+        {
+            meleeAttacks[i].SetActive(false);
+        }
+        chargeBar.SetActive(false);
+
+        throwAttack.SetActive(false);
+
     }
 
     // Update is called once per frame
@@ -67,6 +98,8 @@ public class MainPlayer : MonoBehaviour
     {
 
         Movement();
+
+        Aim();
 
         if (myPlayer.GetButtonDown("Dash") && !isDashing && !dashWait)
         {
@@ -92,6 +125,31 @@ public class MainPlayer : MonoBehaviour
             }
         }
 
+        /*
+        if (myPlayer.GetButtonDown("ThrowAttack") && canAttack && canUseChargeAttack)
+        {
+            canUseChargeAttack = false;
+            chargeAttack = true;
+            chargeBar.SetActive(true);
+            throwTimer = 0;
+            throwAttack.SetActive(true);
+        }
+        if (myPlayer.GetButtonUp("ThrowAttack"))
+        {
+            chargeAttack = false;
+            ReleaseThrowAttack();
+        }
+        */ 
+
+        if (chargeAttack)
+        {
+            ThrowAttack();
+        }
+
+        currentMeleeDamage = baseMeleeDamage * meleeModifier;
+
+        currentThrowDamage = baseThrowDamage * throwModifier;
+
     }
 
     private void FixedUpdate()
@@ -101,23 +159,42 @@ public class MainPlayer : MonoBehaviour
 
     void FixedMovement()
     {
-        if (!isDashing)
+        if (!attacking)
         {
-            rb.MovePosition(rb.position + velocity * speed * Time.deltaTime);
-        }
-        else
-        {
-            rb.MovePosition(rb.position + velocity * dashSpeed * Time.deltaTime);
+            if (!isDashing)
+            {
+                rb.MovePosition(rb.position + velocity * speed * Time.deltaTime);
+            }
+            else
+            {
+                rb.MovePosition(rb.position + velocity * dashSpeed * Time.deltaTime);
+            }
         }
     }
 
     void Movement()
     {
-        if (!isDashing)
+        if (!isDashing && !attacking)
         {
             velocity = new Vector2(myPlayer.GetAxisRaw("MoveHorizontal"), myPlayer.GetAxisRaw("MoveVertical"));
         }
 
+    }
+
+    void Aim()
+    {
+        direction = new Vector2(myPlayer.GetAxisRaw("DirectionHorizontal"), myPlayer.GetAxisRaw("DirectionVertical"));
+
+        if (Mathf.Abs(direction.x) >= .3 || Mathf.Abs(direction.y) >= .3)
+        {
+            pointer.transform.up = direction.normalized;
+            pointer.transform.localPosition = direction.normalized * pointerDistance;
+        }
+        else if (Mathf.Abs(velocity.x) >= .3 || Mathf.Abs(velocity.y) >= .3)
+        {
+            pointer.transform.up = velocity.normalized * Time.deltaTime;
+            pointer.transform.localPosition = velocity.normalized * pointerDistance;
+        }
     }
 
     IEnumerator Dash()
@@ -142,12 +219,18 @@ public class MainPlayer : MonoBehaviour
     IEnumerator FirstMelee()
     {
         firstAttack = true;
+        attacking = true;
         Debug.Log("FirstAttack");
+        meleeAttacks[0].SetActive(true);
+        meleeAttacks[0].transform.position = pointer.transform.position;
+        meleeAttacks[0].GetComponent<MeleeAttack>().damage = currentMeleeDamage;
         yield return new WaitForSeconds(timeToInputCombo);
         firstAttack = false;
+        attacking = false;
+        meleeAttacks[0].SetActive(false);
         if (doSecondAttack)
         {
-            StartCoroutine(SecondMelee());
+            //StartCoroutine(SecondMelee());
         }
     }
 
@@ -156,8 +239,12 @@ public class MainPlayer : MonoBehaviour
         doSecondAttack = false;
         secondAttack = true;
         Debug.Log("SecondAttack");
+        meleeAttacks[1].SetActive(true);
+        meleeAttacks[1].transform.position = pointer.transform.position;
+        meleeAttacks[1].GetComponent<MeleeAttack>().damage = currentMeleeDamage;
         yield return new WaitForSeconds(timeToInputCombo);
         secondAttack = false;
+        meleeAttacks[1].SetActive(false);
         if (doFinisherAttack)
         {
             StartCoroutine(FinisherMelee());
@@ -169,8 +256,33 @@ public class MainPlayer : MonoBehaviour
         doFinisherAttack = false;
         finisherAttack = true;
         Debug.Log("FinisherAttack");
+        meleeAttacks[2].SetActive(true);
+        meleeAttacks[2].transform.position = pointer.transform.position;
+        meleeAttacks[2].GetComponent<MeleeAttack>().damage = currentMeleeDamage;
         yield return new WaitForSeconds(timeToInputCombo);
         finisherAttack = false;
+        meleeAttacks[2].SetActive(false);
+    }
+
+    void ThrowAttack()
+    {
+        attacking = true;
+        throwTimer += Time.deltaTime;
+        filledBar.fillAmount = throwTimer;
+        throwAttack.transform.position = pointer.transform.position;
+    }
+
+    void ReleaseThrowAttack()
+    {
+        attacking = false;
+        var ta = throwAttack.GetComponent<ProjectileAttack>();
+        ta.direction = direction;
+        ta.damage = currentThrowDamage;
+        if (throwTimer < 1)
+        {
+            ta.speed = ta.speed * throwTimer;
+        }
+        chargeBar.SetActive(false);
     }
 
     //[REWIRED METHODS]
