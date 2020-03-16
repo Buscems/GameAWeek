@@ -112,6 +112,8 @@ public class MainPlayer : MonoBehaviour
             isJumping = false;
         }
 
+        
+
         //set timer that will let the player jump slightly off the platform
         if (onTopOfPlatform)
         {
