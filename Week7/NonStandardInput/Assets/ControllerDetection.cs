@@ -3,17 +3,29 @@ using System.Collections.Generic;
 using UnityEngine;
 using Rewired;
 using Rewired.ControllerExtensions;
+using UnityEngine.UI;
+using TMPro;
+
 
 public class ControllerDetection : MonoBehaviour
 {
 
-    public GameObject firstCircle, secondCircle;
-
-    public GameObject xbox, playstation;
-
-    public GameObject psLeft, psRight;
-
     bool xboxIn, playstationIn;
+
+    public Transform[] playerSpots;
+
+    [Header("Screen Shake")]
+    public Camera playerCamera;
+    public Vector2 rangeOfShake;
+    public float shakeDuration;
+    bool screenShake;
+
+    public GameObject[] hearts;
+    public int health;
+
+    public TextMeshProUGUI timeLasted;
+
+    float timer;
 
     void Awake()
     {
@@ -25,58 +37,87 @@ public class ControllerDetection : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        xbox.SetActive(false);
-        playstation.SetActive(false);
-
-        psLeft.SetActive(false);
-
+        if (xboxIn && playstationIn)
+        {
+            transform.position = playerSpots[2].position;
+        }
+        else if (xboxIn && !playstationIn)
+        {
+            transform.position = playerSpots[1].position;
+        }
+        else if (!xboxIn && playstationIn)
+        {
+            transform.position = playerSpots[3].position;
+        }
+        else
+        {
+            transform.position = playerSpots[0].position;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        if (xboxIn)
+        timer += Time.deltaTime;
+
+        int minutes = Mathf.FloorToInt(timer / 60F);
+        int seconds = Mathf.FloorToInt(timer - minutes * 60);
+        string niceTime = string.Format("{0:0}:{1:00}", minutes, seconds);
+
+        timeLasted.text = "Time: " + niceTime;
+
+        for(int i = health; i < hearts.Length; i++)
         {
-            xbox.SetActive(true);
-            psLeft.SetActive(true);
+            hearts[i].SetActive(false);
+        }
+
+        if (screenShake)
+        {
+            ScreenShake();
+        }
+
+        if (xboxIn && playstationIn)
+        {
+            transform.position = playerSpots[2].position;
+        }
+        else if(xboxIn && !playstationIn)
+        {
+            transform.position = playerSpots[1].position;
+        }
+        else if (!xboxIn && playstationIn)
+        {
+            transform.position = playerSpots[3].position;
         }
         else
         {
-            xbox.SetActive(false);
-            psLeft.SetActive(false);
+            transform.position = playerSpots[0].position;
         }
-
-        /*
-        string[] names = Input.GetJoystickNames();
-        for (int x = 0; x < names.Length; x++)
+        
+        if(health <= 0)
         {
-            print(names[x].Length);
-            if (names[x].Length == 19)
+            PlayerPrefs.SetFloat("currentTime", timer);
+            PlayerPrefs.SetString("score", niceTime);
+            if(PlayerPrefs.GetFloat("currentTime") > PlayerPrefs.GetFloat("highScore"))
             {
-                print("PS4 CONTROLLER IS CONNECTED");
-                //PS4_Controller = 1;
-                //Xbox_One_Controller = 0;
-                playstationIn = true;
+                PlayerPrefs.SetString("highScoreString", niceTime);
             }
-            else
-            {
-                playstationIn = false;
-            }
-            if (names[x].Length == 33)
-            {
-                print("XBOX ONE CONTROLLER IS CONNECTED");
-                //set a controller bool to true
-                //PS4_Controller = 0;
-                //Xbox_One_Controller = 1;
-                xboxIn = true;
-            }
-            else
-            {
-                xboxIn = false;
-            }
+            UnityEngine.SceneManagement.SceneManager.LoadScene("End");
         }
-        */
+        
+    }
+
+    void ScreenShake()
+    {
+        playerCamera.transform.position = new Vector3(Random.Range(rangeOfShake.x, rangeOfShake.y), Random.Range(rangeOfShake.x, rangeOfShake.y), -10);
+    }
+
+    IEnumerator StartScreenShake()
+    {
+        screenShake = true;
+        yield return new WaitForSeconds(shakeDuration);
+        screenShake = false;
+        playerCamera.transform.position = new Vector3(0, 0, -10);
     }
 
     void OnControllerConnected(ControllerStatusChangedEventArgs args)
@@ -87,7 +128,10 @@ public class ControllerDetection : MonoBehaviour
         {
             xboxIn = true;
         }
-        
+        if(args.name == "Sony DualShock 4")
+        {
+            playstationIn = true;
+        }
         
     }
 
@@ -100,7 +144,17 @@ public class ControllerDetection : MonoBehaviour
         {
             xboxIn = false;
         }
-        
+        if (args.name == "Sony DualShock 4")
+        {
+            playstationIn = false;
+        }
+
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        StartCoroutine(StartScreenShake());
+        health--;
     }
 
 }
